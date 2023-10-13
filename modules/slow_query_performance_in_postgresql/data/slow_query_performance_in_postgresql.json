@@ -1,0 +1,134 @@
+{
+  "name": "slow_query_performance_in_postgresql",
+  "description": "This incident type generally refers to situations where queries in a PostgreSQL database are taking longer than expected to execute. This can lead to slow application performance and a poor user experience. It may require a deep dive into the database schema and query execution plans to diagnose and optimize the slow queries. Common solutions may include indexing, rewriting the query, or tuning the database configuration.",
+  "params": [
+    {
+      "name": "VERSION",
+      "value": ""
+    },
+    {
+      "name": "COLUMN_NAME",
+      "value": ""
+    },
+    {
+      "name": "IDLE",
+      "value": ""
+    },
+    {
+      "name": "TABLE_NAME",
+      "value": ""
+    },
+    {
+      "name": "QUERY",
+      "value": ""
+    },
+    {
+      "name": "DATABASE_NAME",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Slow query performance in PostgreSQL\nThis incident type generally refers to situations where queries in a PostgreSQL database are taking longer than expected to execute. This can lead to slow application performance and a poor user experience. It may require a deep dive into the database schema and query execution plans to diagnose and optimize the slow queries. Common solutions may include indexing, rewriting the query, or tuning the database configuration."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check current connections to the database"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT * FROM pg_stat_activity;\"`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the size of the database"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT pg_size_pretty(pg_database_size('${DATABASE_NAME}'));\"`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the size of individual tables"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT pg_size_pretty(pg_total_relation_size('${TABLE_NAME}'));\"`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check for long-running queries"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT pid, now() - query_start AS duration, query FROM pg_stat_activity WHERE query != '${IDLE}' AND now() - query_start > INTERVAL '5 minutes' ORDER BY duration DESC;\"`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Explain a specific query to see its execution plan"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"EXPLAIN ANALYZE ${QUERY};\"`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the slow query log to identify frequently executed slow queries"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo grep -i \"duration\" /var/log/postgresql/postgresql-${VERSION}-main.log | grep -v \"duration: 0.\" | sort -u`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Lack of proper indexing: If a large amount of data is being queried without proper indexing, the database engine may have to perform a lot of disk I/O to find the requested data. This can slow down query execution time significantly."
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_create_index($COLUMN_NAME, $TABLE_NAME, $DATABASE_NAME)"
+    }
+  ]
+}

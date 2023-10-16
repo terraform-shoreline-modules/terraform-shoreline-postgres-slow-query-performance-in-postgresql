@@ -18,7 +18,7 @@ resource "shoreline_action" "invoke_create_index" {
   name        = "invoke_create_index"
   description = "Lack of proper indexing: If a large amount of data is being queried without proper indexing, the database engine may have to perform a lot of disk I/O to find the requested data. This can slow down query execution time significantly."
   command     = "`chmod +x /tmp/create_index.sh && /tmp/create_index.sh`"
-  params      = ["COLUMN_NAME","TABLE_NAME","DATABASE_NAME"]
+  params      = ["TABLE_NAME","DATABASE_NAME","COLUMN_NAME"]
   file_deps   = ["create_index"]
   enabled     = true
   depends_on  = [shoreline_file.create_index]

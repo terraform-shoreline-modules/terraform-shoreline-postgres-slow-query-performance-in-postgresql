@@ -3,7 +3,11 @@
   "description": "This incident type generally refers to situations where queries in a PostgreSQL database are taking longer than expected to execute. This can lead to slow application performance and a poor user experience. It may require a deep dive into the database schema and query execution plans to diagnose and optimize the slow queries. Common solutions may include indexing, rewriting the query, or tuning the database configuration.",
   "params": [
     {
-      "name": "VERSION",
+      "name": "TABLE_NAME",
+      "value": ""
+    },
+    {
+      "name": "DATABASE_NAME",
       "value": ""
     },
     {
@@ -15,15 +19,11 @@
       "value": ""
     },
     {
-      "name": "TABLE_NAME",
+      "name": "VERSION",
       "value": ""
     },
     {
       "name": "QUERY",
-      "value": ""
-    },
-    {
-      "name": "DATABASE_NAME",
       "value": ""
     },
     {
@@ -128,7 +128,7 @@
       "name": "cell_15",
       "type": "OP_LANG",
       "enabled": true,
-      "content": "host | host_name=$HOST_NAME | invoke_create_index($COLUMN_NAME, $TABLE_NAME, $DATABASE_NAME)"
+      "content": "host | host_name=$HOST_NAME | invoke_create_index($TABLE_NAME, $DATABASE_NAME, $COLUMN_NAME)"
     }
   ]
 }
